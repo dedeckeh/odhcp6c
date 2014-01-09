@@ -109,7 +109,7 @@ static struct in6_addr server_addr = IN6ADDR_ANY_INIT;
 static uint8_t reconf_key[16];
 
 
-int init_dhcpv6(const char *ifname, int request_pd, int sol_timeout)
+int init_dhcpv6(const char *ifname, int request_pd, bool strict_options, int sol_timeout)
 {
 	request_prefix = request_pd;
 	dhcpv6_retx[DHCPV6_MSG_SOLICIT].max_timeo = sol_timeout;
@@ -161,7 +161,8 @@ int init_dhcpv6(const char *ifname, int request_pd, int sol_timeout)
 	}
 
 	// Create ORO
-	uint16_t oro[] = {
+	if (!strict_options) {
+		uint16_t oro[] = {
 			htons(DHCPV6_OPT_SIP_SERVER_D),
 			htons(DHCPV6_OPT_SIP_SERVER_A),
 			htons(DHCPV6_OPT_DNS_SERVERS),
@@ -176,8 +177,9 @@ int init_dhcpv6(const char *ifname, int request_pd, int sol_timeout)
 #ifdef EXT_PREFIX_CLASS
 			htons(DHCPV6_OPT_PREFIX_CLASS),
 #endif
-	};
-	odhcp6c_add_state(STATE_ORO, oro, sizeof(oro));
+		};
+		odhcp6c_add_state(STATE_ORO, oro, sizeof(oro));
+	}
 
 	// Configure IPv6-options
 	int val = 1;
