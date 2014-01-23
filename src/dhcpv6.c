@@ -108,8 +108,13 @@ static struct in6_addr server_addr = IN6ADDR_ANY_INIT;
 // Reconfigure key
 static uint8_t reconf_key[16];
 
-int init_dhcpv6(const char *ifname, bool strict_options, int sol_timeout)
+// client options
+static unsigned int client_options = 0;
+
+
+int init_dhcpv6(const char *ifname, unsigned int options, int sol_timeout)
 {
+	client_options = options;
 	dhcpv6_retx[DHCPV6_MSG_SOLICIT].max_timeo = sol_timeout;
 
 	sock = socket(AF_INET6, SOCK_DGRAM | SOCK_CLOEXEC, IPPROTO_UDP);
@@ -159,7 +164,7 @@ int init_dhcpv6(const char *ifname, bool strict_options, int sol_timeout)
 	}
 
 	// Create ORO
-	if (!strict_options) {
+	if (!(client_options & DHCPV6_STRICT_OPTIONS)) {
 		uint16_t oro[] = {
 			htons(DHCPV6_OPT_SIP_SERVER_D),
 			htons(DHCPV6_OPT_SIP_SERVER_A),
@@ -416,6 +421,12 @@ static void dhcpv6_send(enum dhcpv6_msg type, uint8_t trid[3], uint32_t ecs)
 
 	if (na_mode == IA_MODE_NONE)
 		iov[7].iov_len = 0;
+
+	if (!(client_options & DHCPV6_ACCEPT_RECONFIGURE))
+		iov[5].iov_len = 0;
+
+	if (!(client_options & DHCPV6_CLIENT_FQDN))
+		iov[6].iov_len = 0;
 
 	struct sockaddr_in6 srv = {AF_INET6, htons(DHCPV6_SERVER_PORT),
 		0, ALL_DHCPV6_RELAYS, ifindex};
