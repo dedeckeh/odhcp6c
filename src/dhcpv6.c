@@ -994,6 +994,7 @@ static int dhcpv6_handle_reply(enum dhcpv6_msg orig, _unused const int rc,
 				continue;
 
 			dhcpv6_parse_ia(ia_hdr, odata + olen + sizeof(*ia_hdr));
+			passthru = false;
 		} else if (otype == DHCPV6_OPT_UNICAST && olen == sizeof(server_addr)) {
 			server_addr = *(struct in6_addr *)odata;
 			passthru = false;
