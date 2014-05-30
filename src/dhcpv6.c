@@ -1090,7 +1090,7 @@ static int dhcpv6_handle_reply(enum dhcpv6_msg orig, _unused const int rc,
 				otype == DHCPV6_OPT_SERVERID ||
 				otype == DHCPV6_OPT_IA_TA ||
 				otype == DHCPV6_OPT_PREF ||
-				otype == DHCPV6_OPT_FQDN) {
+				otype == DHCPV6_OPT_RECONF_ACCEPT) {
 			passthru = false;
 		} else {
 			odhcp6c_add_state(STATE_CUSTOM_OPTS, &odata[-4], olen + 4);
