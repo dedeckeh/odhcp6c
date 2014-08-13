@@ -35,9 +35,6 @@
 #include "odhcp6c.h"
 #include "ra.h"
 
-#ifdef EXT_BFD_PING
-#include "bfd.h"
-#endif
 
 #ifndef IN6_IS_ADDR_UNIQUELOCAL
 #define IN6_IS_ADDR_UNIQUELOCAL(a) \
@@ -79,9 +76,6 @@ int main(_unused int argc, char* const argv[])
 	static struct in6_addr ifid = IN6ADDR_ANY_INIT;
 	int sol_timeout = DHCPV6_SOL_MAX_RT;
 
-#ifdef EXT_BFD_PING
-	int bfd_interval = 0, bfd_loss = 3;
-#endif
 
 	bool help = false, daemonize = false;
 	int logopt = LOG_PID;
@@ -149,12 +143,6 @@ int main(_unused int argc, char* const argv[])
 			allow_slaac_only = -1;
 			ia_pd_mode = IA_MODE_FORCE;
 			break;
-
-#ifdef EXT_BFD_PING
-		case 'B':
-			bfd_interval = atoi(optarg);
-			break;
-#endif
 
 		case 'c':
 			l = script_unhexlify(&buf[4], sizeof(buf) - 4, optarg);
@@ -359,10 +347,6 @@ int main(_unused int argc, char* const argv[])
 			script_call("bound");
 			bound = true;
 			syslog(LOG_NOTICE, "entering stateful-mode on %s", ifname);
-#ifdef EXT_BFD_PING
-			if (bfd_interval > 0)
-				bfd_start(ifname, bfd_loss, bfd_interval);
-#endif
 
 			while (!signal_usr2 && !signal_term) {
 				// Renew Cycle
@@ -405,9 +389,6 @@ int main(_unused int argc, char* const argv[])
 				if (res > 0)
 					script_call("rebound");
 				else {
-#ifdef EXT_BFD_PING
-					bfd_stop();
-#endif
 					break;
 				}
 			}
@@ -448,9 +429,6 @@ static int usage(void)
 	"	-P <length>	Request IPv6-Prefix (0 = auto)\n"
 	"	-F		Force IPv6-Prefix\n"
 	"	-V <class>	Set vendor-class option (base-16 encoded)\n"
-#ifdef EXT_BFD_PING
-	"	-B <interval>	Enable BFD ping check\n"
-#endif
 	"	-u <user-class> Set user-class option string\n"
 	"	-c <clientid>	Override client-ID (base-16 encoded)\n"
 	"	-i <iface-id>	Use a custom interface identifier for RA handling\n"
@@ -514,9 +492,6 @@ bool odhcp6c_signal_process(void)
 		else if (ra_updated && !bound && allow_slaac_only > 0)
 			script_delay_call("ra-updated", allow_slaac_only);
 
-#ifdef EXT_BFD_PING
-		bfd_receive();
-#endif
 	}
 
 	return signal_usr1 || signal_usr2 || signal_term;
