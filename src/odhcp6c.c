@@ -75,6 +75,7 @@ int main(_unused int argc, char* const argv[])
 	int ia_pd_iaid_index = 0;
 	static struct in6_addr ifid = IN6ADDR_ANY_INIT;
 	int sol_timeout = DHCPV6_SOL_MAX_RT;
+	int verbosity = 0;
 
 
 	bool help = false, daemonize = false;
@@ -82,7 +83,7 @@ int main(_unused int argc, char* const argv[])
 	int c;
 	unsigned int client_options = DHCPV6_CLIENT_FQDN | DHCPV6_ACCEPT_RECONFIGURE;
 
-	while ((c = getopt(argc, argv, "S::N:V:P:FB:c:i:r:Ru:s:kt:m:hedp:fa")) != -1) {
+	while ((c = getopt(argc, argv, "S::N:V:P:FB:c:i:r:Ru:s:kt:m:hedp:fav")) != -1) {
 		switch (c) {
 		case 'S':
 			allow_slaac_only = (optarg) ? atoi(optarg) : -1;
@@ -220,6 +221,10 @@ int main(_unused int argc, char* const argv[])
 			client_options &= ~DHCPV6_ACCEPT_RECONFIGURE;
 			break;
 
+		case 'v':
+			++verbosity;
+			break;
+
 		default:
 			help = true;
 			break;
@@ -227,6 +232,9 @@ int main(_unused int argc, char* const argv[])
 	}
 
 	openlog("odhcp6c", logopt, LOG_DAEMON);
+	if (!verbosity)
+		setlogmask(LOG_UPTO(LOG_WARNING));
+
 	ifname = argv[optind];
 
 	if (help || !ifname)
@@ -446,7 +454,7 @@ static int usage(void)
 	"	-p <pidfile>	Set pidfile (/var/run/odhcp6c.pid)\n"
 	"	-d		Daemonize\n"
 	"	-e		Write logmessages to stderr\n"
-	//"	-v		Increase logging verbosity\n"
+	"	-v		Increase logging verbosity\n"
 	"	-h		Show this help\n\n";
 	write(STDERR_FILENO, buf, sizeof(buf));
 	return 1;
