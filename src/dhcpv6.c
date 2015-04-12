@@ -177,9 +177,6 @@ int init_dhcpv6(const char *ifname, unsigned int options, int sol_timeout)
 			htons(DHCPV6_OPT_PD_EXCLUDE),
 			htons(DHCPV6_OPT_SOL_MAX_RT),
 			htons(DHCPV6_OPT_INF_MAX_RT),
-#ifdef EXT_PREFIX_CLASS
-			htons(DHCPV6_OPT_PREFIX_CLASS),
-#endif
 #ifdef EXT_CER_ID
 			htons(DHCPV6_OPT_CER_ID),
 #endif
@@ -1176,7 +1173,7 @@ static int dhcpv6_parse_ia(void *opt, void *end)
 	// Update address IA
 	dhcpv6_for_each_option(&ia_hdr[1], end, otype, olen, odata) {
 		struct odhcp6c_entry entry = {IN6ADDR_ANY_INIT, 0, 0,
-				IN6ADDR_ANY_INIT, 0, 0, 0, 0, 0, 0};
+				IN6ADDR_ANY_INIT, 0, 0, 0, 0, 0};
 
 		entry.iaid = ia_hdr->iaid;
 
@@ -1200,14 +1197,6 @@ static int dhcpv6_parse_ia(void *opt, void *end)
 			entry.target = prefix->addr;
 			uint16_t stype, slen;
 			uint8_t *sdata;
-
-#ifdef EXT_PREFIX_CLASS
-			// Find prefix class, if any
-			dhcpv6_for_each_option(&prefix[1], odata + olen,
-					stype, slen, sdata)
-				if (stype == DHCPV6_OPT_PREFIX_CLASS && slen == 2)
-					entry.class = sdata[0] << 8 | sdata[1];
-#endif
 
 			// Parse PD-exclude
 			bool ok = true;
@@ -1271,16 +1260,6 @@ static int dhcpv6_parse_ia(void *opt, void *end)
 
 			entry.length = 128;
 			entry.target = addr->addr;
-
-#ifdef EXT_PREFIX_CLASS
-			uint16_t stype, slen;
-			uint8_t *sdata;
-			// Find prefix class, if any
-			dhcpv6_for_each_option(&addr[1], odata + olen,
-					stype, slen, sdata)
-				if (stype == DHCPV6_OPT_PREFIX_CLASS && slen == 2)
-					entry.class = sdata[0] << 8 | sdata[1];
-#endif
 
 			odhcp6c_update_entry(STATE_IA_NA, &entry, 0, false);
 			parsed_ia++;
