@@ -256,6 +256,7 @@ enum odhcp6c_state {
 	STATE_RA_ROUTE,
 	STATE_RA_PREFIX,
 	STATE_RA_DNS,
+	STATE_RA_SEARCH,
 	STATE_AFTR_NAME,
 	STATE_VENDORCLASS,
 	STATE_USERCLASS,
@@ -290,7 +291,8 @@ enum odhcp6c_ia_mode {
 
 struct odhcp6c_entry {
 	struct in6_addr router;
-	uint16_t length;
+	uint8_t auxlen;
+	uint8_t length;
 	int16_t priority;
 	struct in6_addr target;
 	uint32_t valid;
@@ -298,6 +300,7 @@ struct odhcp6c_entry {
 	uint32_t t1;
 	uint32_t t2;
 	uint32_t iaid;
+	uint8_t auxtarget[];
 };
 
 struct odhcp6c_request_prefix {
