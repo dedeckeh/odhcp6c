@@ -687,12 +687,10 @@ int odhcp6c_random(void *buf, size_t len)
 	return read(urandom_fd, buf, len);
 }
 
-
 bool odhcp6c_is_bound(void)
 {
 	return bound;
 }
-
 
 bool odhcp6c_addr_in_scope(const struct in6_addr *addr)
 {
